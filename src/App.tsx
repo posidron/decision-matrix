@@ -136,7 +136,7 @@ function App() {
       <Box
         sx={{
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: "linear-gradient(135deg, #6366f1 0%, #ec4899 100%)",
           py: 4,
         }}
       >
@@ -211,9 +211,14 @@ function App() {
                 sx={{
                   background:
                     "linear-gradient(45deg, #6366f1 30%, #ec4899 90%)",
+                  color: "white",
                   "&:hover": {
                     background:
                       "linear-gradient(45deg, #4f46e5 30%, #db2777 90%)",
+                  },
+                  "&:disabled": {
+                    background: "rgba(0, 0, 0, 0.12)",
+                    color: "rgba(0, 0, 0, 0.26)",
                   },
                 }}
               >
