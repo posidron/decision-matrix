@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CriteriaManager from "./components/CriteriaManager";
 import ProductManager from "./components/ProductManager";
 import Results from "./components/Results";
@@ -83,6 +83,30 @@ function App() {
   const [criteria, setCriteria] = useState<Criterion[]>([]);
   const [scores, setScores] = useState<Score[]>([]);
 
+  // Initialize default scores when products or criteria change
+  useEffect(() => {
+    if (products.length > 0 && criteria.length > 0) {
+      const newScores: Score[] = [];
+      products.forEach((product) => {
+        criteria.forEach((criterion) => {
+          const existingScore = scores.find(
+            (s) => s.productId === product.id && s.criterionId === criterion.id
+          );
+          if (!existingScore) {
+            newScores.push({
+              productId: product.id,
+              criterionId: criterion.id,
+              value: 5,
+            });
+          }
+        });
+      });
+      if (newScores.length > 0) {
+        setScores((prevScores) => [...prevScores, ...newScores]);
+      }
+    }
+  }, [products, criteria]);
+
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
@@ -98,7 +122,9 @@ function App() {
       case 1:
         return criteria.length >= 1;
       case 2:
-        return scores.length === products.length * criteria.length;
+        const requiredScores = products.length * criteria.length;
+        const actualScores = scores.length;
+        return actualScores >= requiredScores;
       default:
         return true;
     }
@@ -150,7 +176,11 @@ function App() {
               variant="h3"
               component="h1"
               align="center"
-              sx={{ mb: 4, color: "white" }}
+              sx={{
+                mb: 4,
+                color: "white",
+                fontWeight: 700,
+              }}
             >
               Decision Matrix
             </Typography>

@@ -58,8 +58,22 @@ const ScoringMatrix: React.FC<ScoringMatrixProps> = ({
 
   const getCompletionPercentage = () => {
     const totalCells = products.length * criteria.length;
-    const completedCells = scores.length;
-    return totalCells > 0 ? (completedCells / totalCells) * 100 : 0;
+    if (totalCells === 0) return 0;
+
+    // Count how many product-criterion combinations have scores (including defaults)
+    let completedCells = 0;
+    products.forEach((product) => {
+      criteria.forEach((criterion) => {
+        const hasScore = scores.some(
+          (s) => s.productId === product.id && s.criterionId === criterion.id
+        );
+        if (hasScore) {
+          completedCells++;
+        }
+      });
+    });
+
+    return (completedCells / totalCells) * 100;
   };
 
   const completionPercentage = getCompletionPercentage();
