@@ -178,8 +178,11 @@ function App() {
               align="center"
               sx={{
                 mb: 4,
-                color: "white",
+                color: "white !important",
                 fontWeight: 700,
+                background: "none !important",
+                WebkitBackgroundClip: "unset !important",
+                WebkitTextFillColor: "white !important",
               }}
             >
               Decision Matrix
