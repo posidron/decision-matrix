@@ -107,6 +107,30 @@ function App() {
     }
   }, [products, criteria]);
 
+  // Load shared data from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedData = urlParams.get("data");
+
+    if (sharedData) {
+      try {
+        const decodedData = JSON.parse(atob(sharedData));
+        if (
+          decodedData.products &&
+          decodedData.criteria &&
+          decodedData.scores
+        ) {
+          setProducts(decodedData.products);
+          setCriteria(decodedData.criteria);
+          setScores(decodedData.scores);
+          setActiveStep(3); // Go directly to results
+        }
+      } catch (error) {
+        console.error("Failed to load shared data:", error);
+      }
+    }
+  }, []);
+
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };

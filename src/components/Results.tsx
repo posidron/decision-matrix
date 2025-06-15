@@ -1,10 +1,19 @@
-import { Assessment, EmojiEvents, TrendingUp } from "@mui/icons-material";
 import {
+  Assessment,
+  EmojiEvents,
+  GetApp,
+  Share,
+  TrendingUp,
+} from "@mui/icons-material";
+import {
+  Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
   LinearProgress,
+  Snackbar,
   Stack,
   Table,
   TableBody,
@@ -15,7 +24,8 @@ import {
   Typography,
 } from "@mui/material";
 import { motion } from "framer-motion";
-import React from "react";
+import html2canvas from "html2canvas";
+import React, { useRef, useState } from "react";
 import { Criterion, Product, ProductScore, Score } from "../types";
 
 interface ResultsProps {
@@ -25,6 +35,17 @@ interface ResultsProps {
 }
 
 const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "success" | "error";
+  }>({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
   const calculateProductScores = (): ProductScore[] => {
     return products.map((product) => {
       const criteriaScores = criteria.map((criterion) => {
@@ -86,8 +107,79 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
     return "error.main";
   };
 
+  const generateShareableLink = () => {
+    try {
+      const data = {
+        products,
+        criteria,
+        scores,
+        timestamp: Date.now(),
+      };
+
+      const encodedData = btoa(JSON.stringify(data));
+      const shareableUrl = `${window.location.origin}${window.location.pathname}?data=${encodedData}`;
+
+      navigator.clipboard
+        .writeText(shareableUrl)
+        .then(() => {
+          setSnackbar({
+            open: true,
+            message: "Shareable link copied to clipboard!",
+            severity: "success",
+          });
+        })
+        .catch(() => {
+          setSnackbar({
+            open: true,
+            message: "Failed to copy link to clipboard",
+            severity: "error",
+          });
+        });
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to generate shareable link",
+        severity: "error",
+      });
+    }
+  };
+
+  const exportAsImage = async () => {
+    if (!resultsRef.current) return;
+
+    try {
+      const canvas = await html2canvas(resultsRef.current, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+      });
+
+      const link = document.createElement("a");
+      link.download = `decision-matrix-results-${Date.now()}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+
+      setSnackbar({
+        open: true,
+        message: "Results exported as image!",
+        severity: "success",
+      });
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: "Failed to export image",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   return (
-    <Box>
+    <Box ref={resultsRef}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
         Decision Matrix Results
       </Typography>
@@ -374,6 +466,48 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Share Buttons */}
+      <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
+        <Button
+          variant="contained"
+          startIcon={<Share />}
+          onClick={generateShareableLink}
+          sx={{
+            background: "linear-gradient(45deg, #6366f1 30%, #ec4899 90%)",
+            color: "white",
+            "&:hover": {
+              background: "linear-gradient(45deg, #4f46e5 30%, #db2777 90%)",
+            },
+          }}
+        >
+          Copy Shareable Link
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<GetApp />}
+          onClick={exportAsImage}
+          sx={{
+            background: "linear-gradient(45deg, #6366f1 30%, #ec4899 90%)",
+            color: "white",
+            "&:hover": {
+              background: "linear-gradient(45deg, #4f46e5 30%, #db2777 90%)",
+            },
+          }}
+        >
+          Export as Image
+        </Button>
+      </Box>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
