@@ -10,11 +10,13 @@ import {
   Stepper,
   ThemeProvider,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import CriteriaManager from "./components/CriteriaManager";
 import ProductManager from "./components/ProductManager";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import Results from "./components/Results";
 import ScoringMatrix from "./components/ScoringMatrix";
 import { Criterion, Product, Score } from "./types";
@@ -67,6 +69,24 @@ const theme = createTheme({
         },
       },
     },
+    MuiStepLabel: {
+      styleOverrides: {
+        label: {
+          fontSize: "0.875rem",
+          "@media (max-width: 600px)": {
+            fontSize: "0.875rem", // Keep same size on mobile for vertical stepper
+            whiteSpace: "normal",
+            wordWrap: "break-word",
+          },
+        },
+        labelContainer: {
+          "@media (max-width: 600px)": {
+            width: "100%",
+            maxWidth: "none",
+          },
+        },
+      },
+    },
   },
 });
 
@@ -82,6 +102,7 @@ function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [criteria, setCriteria] = useState<Criterion[]>([]);
   const [scores, setScores] = useState<Score[]>([]);
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   // Initialize default scores when products or criteria change
   useEffect(() => {
@@ -183,11 +204,13 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <PWAInstallPrompt />
       <Box
         sx={{
           minHeight: "100vh",
           background: "linear-gradient(135deg, #6366f1 0%, #ec4899 100%)",
-          py: 4,
+          py: { xs: 2, sm: 4 },
+          px: { xs: 1, sm: 0 },
         }}
       >
         <Container maxWidth="lg">
@@ -197,11 +220,11 @@ function App() {
             transition={{ duration: 0.6 }}
           >
             <Typography
-              variant="h3"
+              variant={isMobile ? "h4" : "h3"}
               component="h1"
               align="center"
               sx={{
-                mb: 4,
+                mb: { xs: 2, sm: 4 },
                 color: "white !important",
                 fontWeight: 700,
                 background: "none !important",
@@ -212,9 +235,13 @@ function App() {
               Decision Matrix
             </Typography>
             <Typography
-              variant="h6"
+              variant={isMobile ? "body1" : "h6"}
               align="center"
-              sx={{ mb: 6, color: "rgba(255, 255, 255, 0.8)" }}
+              sx={{
+                mb: { xs: 3, sm: 6 },
+                color: "rgba(255, 255, 255, 0.8)",
+                px: { xs: 2, sm: 0 },
+              }}
             >
               Make informed decisions with weighted criteria analysis
             </Typography>
@@ -223,16 +250,41 @@ function App() {
           <Paper
             elevation={0}
             sx={{
-              p: 4,
+              p: { xs: 2, sm: 4 },
               borderRadius: 3,
               background: "rgba(255, 255, 255, 0.95)",
               backdropFilter: "blur(10px)",
             }}
           >
-            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-              {steps.map((label) => (
+            <Stepper
+              activeStep={activeStep}
+              sx={{
+                mb: { xs: 2, sm: 4 },
+                "& .MuiStepConnector-root": {
+                  display: { xs: "none", sm: "block" },
+                },
+                "& .MuiStep-root": {
+                  px: { xs: 0, sm: 1 },
+                },
+              }}
+              orientation={isMobile ? "vertical" : "horizontal"}
+            >
+              {steps.map((label, index) => (
                 <Step key={label}>
-                  <StepLabel>{label}</StepLabel>
+                  <StepLabel
+                    sx={{
+                      "& .MuiStepLabel-labelContainer": {
+                        overflow: "visible",
+                      },
+                      "& .MuiStepLabel-label": {
+                        whiteSpace: "normal",
+                        overflow: "visible",
+                        textOverflow: "clip",
+                      },
+                    }}
+                  >
+                    {label}
+                  </StepLabel>
                 </Step>
               ))}
             </Stepper>
@@ -250,13 +302,20 @@ function App() {
             </AnimatePresence>
 
             <Box
-              sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                mt: { xs: 2, sm: 4 },
+                flexDirection: { xs: "column", sm: "row" },
+                gap: { xs: 2, sm: 0 },
+              }}
             >
               <Button
                 disabled={activeStep === 0}
                 onClick={handleBack}
                 variant="outlined"
-                size="large"
+                size={isMobile ? "medium" : "large"}
+                fullWidth={isMobile}
               >
                 Back
               </Button>
@@ -264,7 +323,8 @@ function App() {
                 variant="contained"
                 onClick={handleNext}
                 disabled={activeStep === steps.length - 1 || !canProceed()}
-                size="large"
+                size={isMobile ? "medium" : "large"}
+                fullWidth={isMobile}
                 sx={{
                   background:
                     "linear-gradient(45deg, #6366f1 30%, #ec4899 90%)",

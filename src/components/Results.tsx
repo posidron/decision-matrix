@@ -22,6 +22,8 @@ import {
   TableHead,
   TableRow,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import html2canvas from "html2canvas";
@@ -36,6 +38,8 @@ interface ResultsProps {
 
 const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -180,10 +184,18 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
 
   return (
     <Box ref={resultsRef}>
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+      <Typography
+        variant={isMobile ? "h6" : "h5"}
+        gutterBottom
+        sx={{ fontWeight: 600, mb: 3 }}
+      >
         Decision Matrix Results
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+      <Typography
+        variant="body1"
+        color="text.secondary"
+        sx={{ mb: 4, fontSize: { xs: "0.875rem", sm: "1rem" } }}
+      >
         Here are your products ranked by their weighted scores. The winner is
         determined by the highest total weighted score.
       </Typography>
@@ -204,13 +216,36 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
           }}
         >
           <CardContent sx={{ position: "relative", zIndex: 1 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-              <EmojiEvents sx={{ fontSize: 40 }} />
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: { xs: 1, sm: 2 },
+                mb: 2,
+                flexDirection: { xs: "column", sm: "row" },
+                textAlign: { xs: "center", sm: "left" },
+              }}
+            >
+              <EmojiEvents sx={{ fontSize: { xs: 32, sm: 40 } }} />
+              <Typography
+                variant={isMobile ? "h5" : "h4"}
+                sx={{
+                  fontWeight: 700,
+                  wordBreak: "break-word",
+                  hyphens: "auto",
+                }}
+              >
                 Winner: {sortedProducts[0]?.product.name}
               </Typography>
             </Box>
-            <Typography variant="h6" sx={{ mb: 2, opacity: 0.9 }}>
+            <Typography
+              variant={isMobile ? "body1" : "h6"}
+              sx={{
+                mb: 2,
+                opacity: 0.9,
+                textAlign: { xs: "center", sm: "left" },
+              }}
+            >
               Weighted Score: {sortedProducts[0]?.weightedScore.toFixed(1)} /{" "}
               {(totalWeight * 10).toFixed(1)}
             </Typography>
@@ -255,16 +290,40 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
             <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
               Complete Rankings
             </Typography>
-            <TableContainer>
-              <Table>
+            <TableContainer sx={{ overflowX: "auto" }}>
+              <Table size={isMobile ? "small" : "medium"}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "rgba(99, 102, 241, 0.1)" }}>
-                    <TableCell sx={{ fontWeight: 600 }}>Rank</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Product</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 600 }}>
-                      Weighted Score
+                    <TableCell
+                      sx={{ fontWeight: 600, minWidth: { xs: 60, sm: "auto" } }}
+                    >
+                      Rank
                     </TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 600 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        minWidth: { xs: 120, sm: "auto" },
+                      }}
+                    >
+                      Product
+                    </TableCell>
+                    <TableCell
+                      align="center"
+                      sx={{
+                        fontWeight: 600,
+                        minWidth: { xs: 100, sm: "auto" },
+                      }}
+                    >
+                      {isMobile ? "Score" : "Weighted Score"}
+                    </TableCell>
+                    <TableCell
+                      align="center"
+                      sx={{
+                        fontWeight: 600,
+                        minWidth: { xs: 150, sm: "auto" },
+                        display: { xs: "none", md: "table-cell" },
+                      }}
+                    >
                       Score Breakdown
                     </TableCell>
                   </TableRow>
@@ -293,7 +352,10 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
                             }}
                           >
                             {getRankIcon(index + 1)}
-                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            <Typography
+                              variant={isMobile ? "body1" : "h6"}
+                              sx={{ fontWeight: 600 }}
+                            >
                               #{index + 1}
                             </Typography>
                           </Box>
@@ -301,10 +363,17 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
                       </TableCell>
                       <TableCell>
                         <Box>
-                          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                          <Typography
+                            variant={isMobile ? "body2" : "h6"}
+                            sx={{
+                              fontWeight: 600,
+                              wordBreak: "break-word",
+                              hyphens: "auto",
+                            }}
+                          >
                             {productScore.product.name}
                           </Typography>
-                          {productScore.product.description && (
+                          {productScore.product.description && !isMobile && (
                             <Typography variant="body2" color="text.secondary">
                               {productScore.product.description}
                             </Typography>
@@ -314,7 +383,7 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
                       <TableCell align="center">
                         <Box>
                           <Typography
-                            variant="h5"
+                            variant={isMobile ? "h6" : "h5"}
                             sx={{
                               fontWeight: 700,
                               color: getScoreColor(
@@ -344,7 +413,10 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
                           />
                         </Box>
                       </TableCell>
-                      <TableCell align="center">
+                      <TableCell
+                        align="center"
+                        sx={{ display: { xs: "none", md: "table-cell" } }}
+                      >
                         <Stack
                           direction="row"
                           spacing={1}
@@ -397,25 +469,34 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
               <TrendingUp />
               Detailed Score Breakdown
             </Typography>
-            <TableContainer>
+            <TableContainer sx={{ overflowX: "auto" }}>
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "rgba(99, 102, 241, 0.1)" }}>
-                    <TableCell sx={{ fontWeight: 600 }}>Product</TableCell>
+                    <TableCell sx={{ fontWeight: 600, minWidth: 100 }}>
+                      Product
+                    </TableCell>
                     {criteria.map((criterion) => (
                       <TableCell
                         key={criterion.id}
                         align="center"
-                        sx={{ fontWeight: 600 }}
+                        sx={{ fontWeight: 600, minWidth: 80 }}
                       >
-                        {criterion.name}
+                        <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                          {isMobile && criterion.name.length > 8
+                            ? `${criterion.name.substring(0, 8)}...`
+                            : criterion.name}
+                        </Typography>
                         <br />
                         <Typography variant="caption" color="text.secondary">
-                          (Weight: {criterion.weight})
+                          (W: {criterion.weight})
                         </Typography>
                       </TableCell>
                     ))}
-                    <TableCell align="center" sx={{ fontWeight: 600 }}>
+                    <TableCell
+                      align="center"
+                      sx={{ fontWeight: 600, minWidth: 80 }}
+                    >
                       Total
                     </TableCell>
                   </TableRow>
@@ -424,7 +505,18 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
                   {sortedProducts.map((productScore) => (
                     <TableRow key={productScore.product.id}>
                       <TableCell sx={{ fontWeight: 600 }}>
-                        {productScore.product.name}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 600,
+                            wordBreak: "break-word",
+                            hyphens: "auto",
+                          }}
+                        >
+                          {isMobile && productScore.product.name.length > 12
+                            ? `${productScore.product.name.substring(0, 12)}...`
+                            : productScore.product.name}
+                        </Typography>
                       </TableCell>
                       {productScore.criteriaScores.map((cs) => (
                         <TableCell key={cs.criterion.id} align="center">
@@ -435,12 +527,14 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
                             >
                               {cs.score}/10
                             </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              ({cs.weightedScore.toFixed(1)} weighted)
-                            </Typography>
+                            {!isMobile && (
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                ({cs.weightedScore.toFixed(1)})
+                              </Typography>
+                            )}
                           </Box>
                         </TableCell>
                       ))}
@@ -468,11 +562,21 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
       </motion.div>
 
       {/* Share Buttons */}
-      <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
+      <Box
+        sx={{
+          mt: 4,
+          display: "flex",
+          justifyContent: "center",
+          gap: 2,
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: "center",
+        }}
+      >
         <Button
           variant="contained"
           startIcon={<Share />}
           onClick={generateShareableLink}
+          fullWidth={isMobile}
           sx={{
             background: "linear-gradient(45deg, #6366f1 30%, #ec4899 90%)",
             color: "white",
@@ -487,6 +591,7 @@ const Results: React.FC<ResultsProps> = ({ products, criteria, scores }) => {
           variant="contained"
           startIcon={<GetApp />}
           onClick={exportAsImage}
+          fullWidth={isMobile}
           sx={{
             background: "linear-gradient(45deg, #6366f1 30%, #ec4899 90%)",
             color: "white",
